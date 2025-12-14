@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旅人・隨身規劃 (v8 客製版)</title>
+    <title>日本規劃 </title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,6 +12,12 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
+        // 全局錯誤攔截
+        window.onerror = function(msg, url, line, col, error) {
+            console.error("Error:", msg);
+            return false;
+        };
+
         tailwind.config = {
             theme: {
                 extend: {
@@ -35,36 +41,61 @@
     </script>
 
     <style>
-        /* 手機體驗優化 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         body { -webkit-tap-highlight-color: transparent; }
         
-        /* === 智慧標籤樣式 === */
+        /* Tags */
         .tag-eat { color: #9f1239; background-color: #ffe4e6; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid #fda4af; }
         .tag-menu { color: #b45309; background-color: #fffbeb; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border-bottom: 2px solid #f59e0b; }
         .tag-buy { color: #15803d; background-color: #dcfce7; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid #86efac; }
         .tag-res { color: #ffffff; background-color: #7c3aed; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; box-shadow: 2px 2px 0px #5b21b6; }
         .tag-imp { color: #1e40af; background-color: #dbeafe; font-weight: 800; padding: 0 4px; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #3b82f6; }
 
-        /* 一般表格樣式 (用於底部資訊) */
         .info-block table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; background: rgba(255,255,255,0.5); }
         .info-block th { background: rgba(0,0,0,0.05); padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1); font-weight: bold; color: #374151; }
         .info-block td { padding: 8px; border: 1px solid rgba(0,0,0,0.1); vertical-align: top; }
         .info-block ul { list-style-type: disc; padding-left: 20px; margin: 5px 0; }
         .info-block a { color: #0EA5E9; text-decoration: underline; }
 
-        /* 首頁總覽表格樣式 */
         .overview-table-container table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
         .overview-table-container th { background-color: #f1f5f9; color: #334155; font-weight: bold; padding: 10px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
         .overview-table-container td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
         .overview-table-container tr:last-child td { border-bottom: none; }
 
-        /* AI 分析區塊樣式 */
         .ai-box { background: linear-gradient(to right, #eff6ff, #ffffff); border-left: 4px solid #3b82f6; padding: 8px 12px; margin-top: 10px; border-radius: 0 8px 8px 0; font-size: 0.8rem; color: #1e3a8a; display: flex; align-items: start; gap: 8px; }
 
-        /* 列印樣式 */
+        /* Weather Widget */
+        .weather-card {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            border-bottom: 1px solid #bae6fd;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #0c4a6e;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .weather-icon { font-size: 1.5rem; margin-right: 8px; }
+        .weather-btn {
+            background-color: #fff;
+            border: 1px solid #bae6fd;
+            color: #0284c7;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            cursor: pointer;
+            z-index: 50;
+        }
+        .weather-btn:active { transform: scale(0.95); background-color: #f0f9ff; }
+
         @media print {
             .no-print, header, nav, .drag-handle, .add-btn, button, input[type="file"], .photo-btn { display: none !important; }
             #print-area { display: block !important; padding: 20px; font-family: serif; }
@@ -84,7 +115,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight" id="header-title">我的旅程</h1>
-                <p class="text-[10px] text-gray-400">v8 客製版</p>
+                <p class="text-[10px] text-gray-400">v9.2 天氣修正版</p>
             </div>
         </div>
         <div class="flex gap-3">
@@ -106,10 +137,10 @@
                     <p class="text-blue-100 text-sm mb-1"><i class="fa-solid fa-calendar-days mr-1"></i>旅程狀態</p>
                     <h2 class="text-3xl font-bold mb-3 tracking-wide" id="trip-days-count">規劃中</h2>
                     <div class="flex gap-2">
-                         <button onclick="switchTab('itinerary')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-lg text-sm transition">
+                         <button onclick="switchTab('itinerary')" class="bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-lg text-sm transition cursor-pointer z-10">
                             <i class="fa-solid fa-list-check mr-1"></i> 查看行程
                         </button>
-                        <button onclick="switchTab('tools')" class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm active:scale-95 transition">
+                        <button onclick="switchTab('tools')" class="bg-white text-blue-600 px-4 py-2 rounded-lg text-sm font-bold shadow-sm active:scale-95 transition cursor-pointer z-10">
                             <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 工具箱
                         </button>
                     </div>
@@ -117,32 +148,48 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden group" onclick="switchTab('tools')">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden group cursor-pointer" onclick="switchTab('tools')">
                     <div class="absolute right-2 top-2 text-green-100 text-5xl group-hover:scale-110 transition"><i class="fa-solid fa-money-bill-wave"></i></div>
                     <p class="text-xs text-gray-500 mb-1">匯率 (JPY)</p>
                     <h3 class="text-2xl font-bold text-gray-800 font-mono" id="home-rate">...</h3>
-                    <p class="text-[10px] text-green-500 mt-1"><i class="fa-solid fa-rotate mr-1"></i>即時更新</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden group">
-                     <div class="absolute right-2 top-2 text-yellow-100 text-5xl group-hover:scale-110 transition"><i class="fa-solid fa-sun"></i></div>
-                    <p class="text-xs text-gray-500 mb-1">目的地天氣</p>
-                    <h3 class="text-2xl font-bold text-gray-800 font-mono">12°C</h3>
-                    <p class="text-[10px] text-orange-500 mt-1">晴時多雲</p>
+                     <div class="absolute right-2 top-2 text-yellow-100 text-5xl group-hover:scale-110 transition"><i class="fa-solid fa-cloud-sun"></i></div>
+                    <p class="text-xs text-gray-500 mb-1">大阪天氣</p>
+                    <h3 class="text-2xl font-bold text-gray-800 font-mono" id="home-weather-temp">--°C</h3>
+                    <p class="text-[10px] text-orange-500 mt-1" id="home-weather-desc">載入中...</p>
                 </div>
             </div>
             
             <div id="overview-section" class="hidden">
                  <h3 class="font-bold text-gray-700 text-lg mb-2 pl-1 border-l-4 border-primary">行程總覽</h3>
-                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto overview-table-container p-2" id="overview-content">
-                     </div>
+                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto overview-table-container p-2" id="overview-content"></div>
             </div>
         </div>
 
         <div id="view-itinerary" class="hidden flex flex-col min-h-full animate-fade-in relative">
-            
-            <div class="sticky top-0 z-20 bg-gray-50/95 backdrop-blur border-b border-gray-200">
-                <div id="day-tabs" class="flex overflow-x-auto no-scrollbar gap-2 px-4 py-3">
+            <div class="sticky top-0 z-20 bg-gray-50/95 backdrop-blur shadow-sm">
+                <div id="day-tabs" class="flex overflow-x-auto no-scrollbar gap-2 px-4 py-3 border-b border-gray-200">
                     </div>
+                <div id="weather-widget" class="weather-card">
+                    <div class="flex items-center">
+                        <div id="ww-icon" class="weather-icon text-gray-400"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                        <div>
+                            <div class="flex items-baseline gap-2">
+                                <span id="ww-city" class="font-bold text-gray-800">大阪</span>
+                                <span id="ww-date" class="text-xs text-gray-500">--/--</span>
+                            </div>
+                            <div class="text-xs mt-0.5">
+                                <span id="ww-temp" class="font-bold text-lg mr-2">--°C</span>
+                                <span id="ww-rain" class="text-blue-500"><i class="fa-solid fa-umbrella mr-1"></i>--%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="ww-link" class="weather-btn">
+                        <i class="fa-solid fa-up-right-from-square"></i>
+                        Tenki.jp 詳細
+                    </button>
+                </div>
             </div>
 
             <div class="p-4 pt-4 flex-1">
@@ -151,8 +198,7 @@
                     <span class="text-xs text-gray-400 bg-gray-200 px-2 py-1 rounded-full"><i class="fa-solid fa-arrows-up-down mr-1"></i>長按拖曳</span>
                 </div>
 
-                <ul id="itinerary-list" class="space-y-4 mb-8 min-h-[100px]">
-                    </ul>
+                <ul id="itinerary-list" class="space-y-4 mb-8 min-h-[100px]"></ul>
 
                 <div id="bottom-summary-section" class="hidden animate-fade-in">
                     <div class="border-t-2 border-dashed border-gray-200 my-6 relative">
@@ -161,7 +207,7 @@
                     <div id="day-summary-container" class="space-y-4 pb-4"></div>
                 </div>
 
-                <button onclick="addNewItem()" class="w-full py-4 mt-4 border-2 border-dashed border-gray-300 text-gray-400 rounded-xl flex items-center justify-center gap-2 hover:bg-white hover:border-primary hover:text-primary transition active:scale-95">
+                <button onclick="addNewItem()" class="w-full py-4 mt-4 border-2 border-dashed border-gray-300 text-gray-400 rounded-xl flex items-center justify-center gap-2 hover:bg-white hover:border-primary hover:text-primary transition active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-plus"></i> 新增行程
                 </button>
             </div>
@@ -170,9 +216,9 @@
         <div id="view-notepad" class="hidden p-4 animate-fade-in h-full flex flex-col">
             <div class="bg-yellow-100 rounded-xl p-4 text-yellow-800 mb-4 shadow-sm border border-yellow-200">
                 <h3 class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2"></i>隨手筆記</h3>
-                <p class="text-xs text-yellow-700 mt-1">此處的內容會自動儲存，可記錄臨時想法或備忘。</p>
+                <p class="text-xs text-yellow-700 mt-1">此處的內容會自動儲存。</p>
             </div>
-            <textarea id="notepad-area" class="flex-1 w-full bg-white border border-gray-200 rounded-xl p-4 shadow-sm focus:ring-2 focus:ring-primary focus:outline-none text-gray-700 leading-relaxed" placeholder="在這裡輸入您的筆記..."></textarea>
+            <textarea id="notepad-area" class="flex-1 w-full bg-white border border-gray-200 rounded-xl p-4 shadow-sm focus:ring-2 focus:ring-primary focus:outline-none text-gray-700 leading-relaxed" placeholder="輸入筆記..."></textarea>
         </div>
 
         <div id="view-tools" class="hidden p-4 space-y-4 animate-fade-in">
@@ -180,7 +226,7 @@
                 <div class="bg-white/20 p-3 rounded-full"><i class="fa-solid fa-file-import text-2xl"></i></div>
                 <div class="text-left flex-1">
                     <div class="font-bold text-lg">匯入 Markdown 行程</div>
-                    <div class="text-xs text-blue-100">支援表格、自費與轉乘建議格式</div>
+                    <div class="text-xs text-blue-100">點擊選擇檔案 (.md / .txt)</div>
                 </div>
                 <input type="file" id="md-import-tools" class="hidden" accept=".md,.txt,.markdown" onchange="handleMDImport(this)">
             </label>
@@ -201,15 +247,14 @@
                 <div class="text-center text-xs text-gray-400" id="rate-display">載入中...</div>
             </div>
 
-            <button onclick="exportToPDF()" class="w-full bg-gray-800 text-white p-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition">
+            <button onclick="exportToPDF()" class="w-full bg-gray-800 text-white p-4 rounded-xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition cursor-pointer">
                 <i class="fa-solid fa-print text-xl"></i>
                 <div class="text-left flex-1">
                     <div class="font-bold">匯出行程單 (PDF)</div>
-                    <div class="text-xs text-gray-400">含詳細備註與轉乘資訊</div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-gray-500"></i>
             </button>
-             <button onclick="resetData()" class="w-full py-3 text-red-400 text-sm border border-red-100 rounded-lg hover:bg-red-50">清空所有資料</button>
+             <button onclick="resetData()" class="w-full py-3 text-red-400 text-sm border border-red-100 rounded-lg hover:bg-red-50 cursor-pointer">⚠️ 程式異常？點此清空所有資料</button>
         </div>
     </main>
 
@@ -229,9 +274,7 @@
             </button>
             <button onclick="switchTab('notepad')" class="nav-btn flex-1 group" data-target="notepad">
                 <div class="flex flex-col items-center gap-1 text-gray-400 group-hover:text-primary transition duration-300">
-                    <div class="text-xl relative">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </div>
+                    <div class="text-xl relative"><i class="fa-solid fa-pen-to-square"></i></div>
                     <span class="text-[10px] font-medium">記事</span>
                 </div>
             </button>
@@ -248,7 +291,7 @@
     <input type="file" id="photo-input" class="hidden" accept="image/*" capture="environment">
 
     <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 animate-fade-in">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl relative">
             <h3 class="font-bold text-lg mb-4">編輯行程</h3>
             <div class="space-y-3">
                 <input type="hidden" id="edit-id">
@@ -259,8 +302,8 @@
                 </div>
                 <div><label class="text-xs text-gray-500">備註</label><textarea id="edit-note" rows="3" class="w-full border rounded-lg p-2 text-sm"></textarea></div>
                 <div class="flex gap-2 mt-4">
-                    <button onclick="closeEditModal()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg">取消</button>
-                    <button onclick="saveEdit()" class="flex-1 bg-primary text-white py-2 rounded-lg font-bold shadow-md">儲存</button>
+                    <button onclick="closeEditModal()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg cursor-pointer">取消</button>
+                    <button onclick="saveEdit()" class="flex-1 bg-primary text-white py-2 rounded-lg font-bold shadow-md cursor-pointer">儲存</button>
                 </div>
             </div>
         </div>
@@ -275,147 +318,248 @@
             rate: 0.22,
             itinerary: [],
             dayMeta: {},
-            overviewMarkdown: "", // 儲存 Day 1 之前的總覽表格 Markdown
-            notepadContent: ""    // 記事本內容
+            overviewMarkdown: "",
+            notepadContent: ""
         };
 
-        let appData = JSON.parse(localStorage.getItem('travelApp_v8')) || defaultData;
+        const cityData = {
+            "大阪": { lat: 34.6937, lon: 135.5023, url: "https://tenki.jp/forecast/6/30/6200/27100/" },
+            "京都": { lat: 35.0116, lon: 135.7681, url: "https://tenki.jp/forecast/6/29/6110/26100/" },
+            "鳥取": { lat: 35.5011, lon: 134.2351, url: "https://tenki.jp/forecast/7/34/6910/31201/" },
+            "岡山": { lat: 34.6555, lon: 133.9198, url: "https://tenki.jp/forecast/7/36/6610/33100/" },
+            "奈良": { lat: 34.6851, lon: 135.8048, url: "https://tenki.jp/forecast/6/29/6410/29201/" },
+            "東京": { lat: 35.6895, lon: 139.6917, url: "https://tenki.jp/forecast/3/16/4410/13101/" }
+        };
+
+        let appData = defaultData;
         let currentDayFilter = "Day 1";
         let activePhotoId = null;
 
-        // --- 2. Initialization ---
+        // --- 2. Robust Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            fetchExchangeRate();
-            renderTabs();
-            renderItinerary();
-            renderOverview();
-            initNotepad();
-            initSortable();
+            try {
+                const stored = localStorage.getItem('travelApp_v9');
+                if (stored) {
+                    appData = JSON.parse(stored);
+                    if(!appData.itinerary) appData.itinerary = [];
+                    if(!appData.dayMeta) appData.dayMeta = {};
+                }
+            } catch (e) {
+                console.error("Data corrupted, resetting to default", e);
+                appData = defaultData;
+            }
+
+            try { fetchExchangeRate(); } catch(e) { console.log(e); }
+            try { fetchHomeWeather(); } catch(e) { console.log(e); }
+            try { renderTabs(); } catch(e) { console.log("Tab Error", e); }
+            try { renderItinerary(); } catch(e) { console.log("Itinerary Error", e); }
+            try { renderOverview(); } catch(e) { console.log("Overview Error", e); }
+            try { initNotepad(); } catch(e) { console.log("Notepad Error", e); }
+            
+            try {
+                if (typeof Sortable !== 'undefined') {
+                    initSortable();
+                }
+            } catch (e) { console.warn("Sortable init failed", e); }
 
             document.getElementById('photo-input').addEventListener('change', handlePhotoProcess);
+            switchTab('home');
         });
 
-        // --- 3. Markdown Parsing (客製化邏輯) ---
+        // --- Core Functions (Global Scope) ---
+        
+        // 1. Weather Logic (Fix applied here)
+        function getCityForDay(day) {
+            // 抓取當天的所有行程文字 (只取名稱 item.name)，增強判斷
+            const items = appData.itinerary.filter(i => i.day === day);
+            const dayTitle = day || "";
+            // ***只使用 item.name 進行城市判斷***
+            const combinedText = (dayTitle + " " + items.map(i => i.name||"").join(" ")).toLowerCase(); 
+
+            // 定義搜索優先級：遠程城市 > 日歸城市 > 基地城市
+
+            // 1. 判斷鳥取 (Day 3) - 關鍵字：鳥取、倉吉、柯南、由良
+            if(combinedText.includes("鳥取") || combinedText.includes("倉吉") || combinedText.includes("柯南") || combinedText.includes("由良")) {
+                return "鳥取";
+            }
+
+            // 2. 判斷岡山 (Day 6) - 關鍵字：岡山、倉敷
+            if(combinedText.includes("岡山") || combinedText.includes("倉敷")) {
+                return "岡山";
+            }
+
+            // 3. 判斷奈良 - 關鍵字：奈良
+            if(combinedText.includes("奈良")) {
+                return "奈良";
+            }
+            
+            // 4. 判斷京都 (Day 2 & 5) - 關鍵字：京都、下鴨、清水寺、嵐山
+            if(combinedText.includes("京都") || combinedText.includes("下鴨") || combinedText.includes("清水寺") || combinedText.includes("嵐山")) {
+                return "京都";
+            }
+
+            // 5. 判斷大阪 (Day 1, 4, 7 & 預設) - 關鍵字：臨空城、關西機場、難波、天王寺、梅田、心齋橋、淀屋橋、大阪
+            if(combinedText.includes("臨空城") || combinedText.includes("關西機場") || combinedText.includes("難波") || combinedText.includes("天王寺") || combinedText.includes("梅田") || combinedText.includes("心齋橋") || combinedText.includes("淀屋橋") || combinedText.includes("大阪")) {
+                return "大阪";
+            }
+            
+            // 6. 最終預設值 (行程基地)
+            return "大阪"; 
+        }
+
+        function parseDateFromDay(dayStr) {
+            if(!dayStr) return new Date().toISOString().split('T')[0];
+            const match = dayStr.match(/(\d{1,2})\/(\d{1,2})/);
+            if(match) {
+                const currentYear = new Date().getFullYear();
+                return `${currentYear}-${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`;
+            }
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function updateWeatherWidget(dayStr) {
+            const cityName = getCityForDay(dayStr);
+            const dateStr = parseDateFromDay(dayStr);
+            const city = cityData[cityName] || cityData["大阪"];
+            
+            const cityEl = document.getElementById('ww-city');
+            const dateEl = document.getElementById('ww-date');
+            const linkEl = document.getElementById('ww-link');
+            const tempEl = document.getElementById('ww-temp');
+            const rainEl = document.getElementById('ww-rain');
+            const iconEl = document.getElementById('ww-icon');
+
+            if(cityEl) cityEl.innerText = cityName;
+            if(dateEl) dateEl.innerText = dateStr.slice(5).replace('-', '/');
+            if(linkEl) {
+                linkEl.onclick = function() { window.open(city.url, '_blank'); };
+            }
+            if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            if(tempEl) tempEl.innerText = '--°C';
+
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&start_date=${dateStr}&end_date=${dateStr}`;
+
+            fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if(data.daily && data.daily.time.length > 0) {
+                    const code = data.daily.weathercode[0];
+                    const maxT = data.daily.temperature_2m_max[0];
+                    const minT = data.daily.temperature_2m_min[0];
+                    const rain = data.daily.precipitation_probability_max[0];
+                    if(tempEl) tempEl.innerText = `${Math.round((maxT+minT)/2)}°C`;
+                    if(rainEl) rainEl.innerHTML = `<i class="fa-solid fa-umbrella mr-1"></i>${rain}%`;
+                    if(iconEl) iconEl.innerHTML = getWeatherIcon(code);
+                } else {
+                    if(tempEl) tempEl.innerText = '-';
+                    if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-calendar-xmark"></i>';
+                }
+            })
+            .catch(err => {
+                console.log("Weather Fetch Error", err);
+                if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+            });
+        }
+
+        function fetchHomeWeather() {
+            const city = cityData["大阪"];
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Asia%2FTokyo`)
+            .then(r=>r.json()).then(d => {
+                if(d.current_weather) {
+                    const t = document.getElementById('home-weather-temp');
+                    const desc = document.getElementById('home-weather-desc');
+                    if(t) t.innerText = `${d.current_weather.temperature}°C`;
+                    if(desc) desc.innerText = getWeatherDesc(d.current_weather.weathercode);
+                }
+            }).catch(e=>console.log("Home Weather Error", e));
+        }
+
+        function getWeatherIcon(code) {
+            if(code === 0) return '<i class="fa-solid fa-sun text-orange-400"></i>';
+            if(code <= 3) return '<i class="fa-solid fa-cloud-sun text-yellow-500"></i>';
+            if(code <= 48) return '<i class="fa-solid fa-smog text-gray-400"></i>';
+            if(code <= 67) return '<i class="fa-solid fa-cloud-rain text-blue-400"></i>';
+            if(code <= 77) return '<i class="fa-solid fa-snowflake text-cyan-300"></i>';
+            if(code >= 95) return '<i class="fa-solid fa-bolt text-yellow-400"></i>';
+            return '<i class="fa-solid fa-cloud text-gray-400"></i>';
+        }
+        function getWeatherDesc(code) {
+            if(code === 0) return "晴朗";
+            if(code <= 3) return "多雲";
+            if(code <= 67) return "有雨";
+            return "陰天";
+        }
+
+        // 2. MD Parser
         function parseMD(text) {
+            if (typeof marked === 'undefined') { alert("Markdown 解析庫載入失敗，請檢查網路。"); return; }
+            
             const lines = text.split(/\r?\n/);
             const newItems = [];
             const newDayMeta = {};
             let newOverviewMD = "";
-            
-            let parsingDay = null; // 開始為 null，代表正在解析總覽區塊
-            let parseMode = "SCHEDULE"; // SCHEDULE, TRANSFER, FOOD, COST, TIPS, BACKUP, OTHER
+            let parsingDay = null; 
+            let parseMode = "SCHEDULE"; 
             
             lines.forEach(line => {
                 let trimmed = line.trim();
-
-                // 1. 偵測日期切換 (# Day X)
                 if ((trimmed.startsWith('#') || trimmed.startsWith('##')) && trimmed.match(/Day/i)) {
-                    // 排除 "Day X 晚餐" 這種子標題
-                    if (trimmed.includes('晚餐') || trimmed.includes('推薦')) {
-                        // 這是子標題，不切換日期
-                    } else {
+                    if (!trimmed.includes('晚餐') && !trimmed.includes('推薦')) {
                         parsingDay = trimmed.replace(/#+\s*/, '').trim(); 
-                        parseMode = "SCHEDULE"; // 重置模式
+                        parseMode = "SCHEDULE";
                         if (!newDayMeta[parsingDay]) newDayMeta[parsingDay] = { cost: "", transfer: "", food: "", tips: "", backup: "" };
                         return;
                     }
                 }
-
-                // **總覽區塊解析**：如果在遇到第一個 Day 之前
-                if (!parsingDay) {
-                    newOverviewMD += line + "\n";
-                    return;
-                }
-
-                // 確保 meta 存在
+                if (!parsingDay) { newOverviewMD += line + "\n"; return; }
+                
                 if (!newDayMeta[parsingDay]) newDayMeta[parsingDay] = { cost: "", transfer: "", food: "", tips: "", backup: "" };
 
-                // 2. 偵測區塊標題 (切換模式)
                 if (trimmed.startsWith('###') || (trimmed.startsWith('**') && trimmed.includes('備案'))) {
                     const lower = trimmed.toLowerCase();
-                    if (lower.includes('轉乘') || lower.includes('步行') || lower.includes('交通')) {
-                        parseMode = "TRANSFER";
-                    } else if (lower.includes('餐') || lower.includes('食') || lower.includes('晚餐') || lower.includes('推薦')) {
-                        parseMode = "FOOD";
-                    } else if (lower.includes('自費')) {
-                        parseMode = "COST";
-                    } else if (lower.includes('提示') || lower.includes('購物')) {
-                        parseMode = "TIPS"; // 新增提示模式
-                    } else if (lower.includes('備案')) {
-                        parseMode = "BACKUP"; // 新增備案模式
-                    } else {
-                        parseMode = "OTHER";
-                    }
-                    // 標題行本身不存，但如果是表格標題可能需要保留，這裡簡單跳過
+                    if (lower.includes('轉乘') || lower.includes('步行') || lower.includes('交通')) parseMode = "TRANSFER";
+                    else if (lower.includes('餐') || lower.includes('食') || lower.includes('晚餐')) parseMode = "FOOD";
+                    else if (lower.includes('自費')) parseMode = "COST";
+                    else if (lower.includes('提示') || lower.includes('購物')) parseMode = "TIPS"; 
+                    else if (lower.includes('備案')) parseMode = "BACKUP"; 
+                    else parseMode = "OTHER";
                     return; 
                 }
 
-                // 3. 偵測單行自費
                 if (trimmed.includes('💡') && trimmed.includes('自費')) {
                      newDayMeta[parsingDay].cost = trimmed.replace(/\*\*/g, '');
                      return;
                 }
 
-                // 4. 根據模式存入內容
                 if (parseMode === "SCHEDULE") {
                     if (trimmed.startsWith('|') && !trimmed.includes('---')) {
                         const cols = trimmed.split('|').map(c => c.replace(/\*\*/g, '').replace(/\[(.*?)\]\(.*?\)/g, '$1').trim());
-                        // MD表格通常 cols[0] 是空字串(因為 | 開頭)，所以 cols[1] 是第一欄
-                        if (cols.length < 3) return; // 至少要有時間跟名稱
-
-                        let time = cols[1]; // 時間欄
-                        let name = cols[2]; // 名稱/地點
+                        if (cols.length < 3) return;
+                        let time = cols[1]; 
+                        let name = cols[2]; 
                         let location = cols[3] || ""; 
                         let note = cols[4] || ""; 
-                        let transTime = "";
-
-                        // Header row check
-                        if (time.includes('時間') || name.includes('行程內容') || name.includes('停留點')) return;
-                        
-                        // **重要修正**：即使時間為空，若後面有內容，仍視為有效行程
+                        if (time.includes('時間') || name.includes('行程內容')) return;
                         const isDetail = (!time || time.trim() === "");
-
-                        // 有些表格格式可能是: 時間 | 行程 | 交通方式 | 備註
-                        // 如果是這種，cols[3] 可能是交通方式，這很重要
-                        if (isDetail && cols[3] && cols[3] !== "-") {
-                             // 如果時間空，但有交通方式，把交通方式加到 note 或 location
-                             note = (cols[3] + " " + note).trim();
-                        }
-
+                        if (isDetail && cols[3] && cols[3] !== "-") note = (cols[3] + " " + note).trim();
                         if (name && name !== "-") {
-                            newItems.push({
-                                id: Date.now() + Math.random(),
-                                day: parsingDay,
-                                time: isDetail ? "" : time,
-                                name: name,
-                                location: location,
-                                note: note,
-                                isDetail: isDetail,
-                                img: null
-                            });
+                            newItems.push({ id: Date.now() + Math.random(), day: parsingDay, time: isDetail ? "" : time, name: name, location: location, note: note, isDetail: isDetail, img: null });
                         }
                     }
-                } else if (parseMode === "TRANSFER") {
-                    if (trimmed) newDayMeta[parsingDay].transfer += line + "\n";
-                } else if (parseMode === "FOOD") {
-                    if (trimmed) newDayMeta[parsingDay].food += line + "\n";
-                } else if (parseMode === "TIPS") {
-                    if (trimmed) newDayMeta[parsingDay].tips += line + "\n";
-                } else if (parseMode === "BACKUP") {
-                    if (trimmed) newDayMeta[parsingDay].backup += line + "\n";
-                }
+                } else if (parseMode === "TRANSFER" && trimmed) newDayMeta[parsingDay].transfer += line + "\n";
+                else if (parseMode === "FOOD" && trimmed) newDayMeta[parsingDay].food += line + "\n";
+                else if (parseMode === "TIPS" && trimmed) newDayMeta[parsingDay].tips += line + "\n";
+                else if (parseMode === "BACKUP" && trimmed) newDayMeta[parsingDay].backup += line + "\n";
             });
 
             if (newItems.length > 0) {
-                if (confirm(`解析完成！\n找到 ${newItems.length} 個行程項目。\n是否匯入？`)) {
+                if (confirm(`解析完成！找到 ${newItems.length} 個行程項目。是否匯入？`)) {
                     appData.itinerary = newItems;
                     appData.dayMeta = newDayMeta;
-                    appData.overviewMarkdown = newOverviewMD; // 儲存總覽 MD
-                    
+                    appData.overviewMarkdown = newOverviewMD; 
                     const days = [...new Set(newItems.map(i => i.day))];
                     currentDayFilter = days[0] || "Day 1";
                     document.getElementById('trip-days-count').innerText = `${days.length} 天行程`;
-
                     saveData();
                     renderTabs();
                     renderItinerary();
@@ -427,49 +571,28 @@
             }
         }
 
-        // --- 4. Highlighting Logic ---
+        // 3. Render Utils
         function highlightContent(text) {
             if (!text) return "";
-            
-            let html = text
+            return text
                 .replace(/(必點|招牌|菜單|限定)/g, '<span class="tag-menu"><i class="fa-solid fa-star text-xs mr-1"></i>$1</span>')
                 .replace(/(必吃|美味|好味|推薦)/g, '<span class="tag-eat"><i class="fa-solid fa-utensils text-xs mr-1"></i>$1</span>')
                 .replace(/(必買|伴手禮|藥妝|折價券|折扣|優惠券)/g, '<span class="tag-buy"><i class="fa-solid fa-bag-shopping text-xs mr-1"></i>$1</span>')
                 .replace(/(預約|訂位|代號|客滿|排隊|門票|整理券)/g, '<span class="tag-res"><i class="fa-solid fa-clipboard-check text-xs mr-1"></i>$1</span>')
                 .replace(/(周遊券|特急|新幹線|JR|巴士|地鐵|列車|rapit|haruka)/gi, '<span class="tag-imp">$1</span>');
-            
-            return html;
         }
 
-        function getUniqueAITip(name, location, seenSet) {
-            const text = (name + location).toLowerCase();
-            const database = [
-                { k: '環球影城', v: '任天堂世界建議一早抽取整理券，並準備快速通關。' },
-                { k: 'usj', v: '如果不想買快通，單人通道 (Single Rider) 是省時好選擇。' },
-                { k: '難波', v: '地下街錯綜複雜，建議認準地標「高島屋」或「南海電鐵」方位。' },
-                { k: '鳥取', v: '砂丘風大請注意防沙，柯南機場巴士班次較少需留意時間。' },
-                { k: '岡山', v: '購買「岡山樂享周遊券」可免費進入多個景點，CP值極高。' },
-                { k: '臨空城', v: 'Outlet 有置物櫃，但遊客中心寄放行李更便宜且不限大小。' }
-            ];
-
-            const match = database.find(r => text.includes(r.k));
-            if (match) {
-                if (seenSet.has(match.v)) return "";
-                seenSet.add(match.v);
-                return `<div class="ai-box"><i class="fa-solid fa-robot text-lg mt-0.5"></i><div>${match.v}</div></div>`;
-            }
-            return "";
+        function safeMarked(text) {
+            if (typeof marked === 'undefined') return text;
+            try { return marked.parse(text); } catch(e) { return text; }
         }
 
-        // --- 5. Rendering Logic ---
         function renderOverview() {
             const container = document.getElementById('overview-section');
             const content = document.getElementById('overview-content');
-            
             if (appData.overviewMarkdown && appData.overviewMarkdown.trim()) {
                 container.classList.remove('hidden');
-                // 使用 marked.js 將 MD 表格轉為 HTML
-                content.innerHTML = marked.parse(appData.overviewMarkdown);
+                content.innerHTML = safeMarked(appData.overviewMarkdown);
             } else {
                 container.classList.add('hidden');
             }
@@ -477,46 +600,41 @@
 
         function renderTabs() {
             const tabsContainer = document.getElementById('day-tabs');
-            const allDays = [...new Set(appData.itinerary.map(item => item.day || "Day 1"))];
-            
+            const allDays = [...new Set((appData.itinerary || []).map(item => item.day || "Day 1"))];
             if (!allDays.includes(currentDayFilter) && allDays.length > 0) currentDayFilter = allDays[0];
-
+            
             tabsContainer.innerHTML = allDays.map(day => {
                 const isActive = day === currentDayFilter;
                 let mainText = day;
                 let subText = "";
                 const matchDay = day.match(/Day\s*\d+/i);
                 const matchDate = day.match(/\((.*?)\)/);
-
                 if (matchDay) mainText = matchDay[0];
                 if (matchDate) subText = matchDate[1].split(',')[0]; 
-
-                const activeClass = "bg-primary text-white shadow-md border-primary ring-2 ring-blue-100";
-                const inactiveClass = "bg-white text-gray-500 border-gray-200";
-
-                return `
-                    <button onclick="switchDayFilter('${day}')" 
-                            class="flex-shrink-0 px-4 py-2 rounded-xl text-center border transition-all min-w-[70px] ${isActive ? activeClass : inactiveClass}">
-                        <div class="font-bold text-sm leading-none">${mainText}</div>
-                        ${subText ? `<div class="text-[10px] opacity-80 mt-1 font-mono">${subText}</div>` : ''}
-                    </button>
-                `;
+                
+                return `<button onclick="switchDayFilter('${day}')" class="flex-shrink-0 px-4 py-2 rounded-xl text-center border transition-all min-w-[70px] ${isActive ? 'bg-primary text-white shadow-md border-primary ring-2 ring-blue-100' : 'bg-white text-gray-500 border-gray-200'}">
+                    <div class="font-bold text-sm leading-none">${mainText}</div>
+                    ${subText ? `<div class="text-[10px] opacity-80 mt-1 font-mono">${subText}</div>` : ''}
+                </button>`;
             }).join('');
             
-            document.getElementById('current-day-title').innerText = currentDayFilter;
+            const titleEl = document.getElementById('current-day-title');
+            if(titleEl) titleEl.innerText = currentDayFilter;
         }
 
         function renderItinerary() {
             const list = document.getElementById('itinerary-list');
             const summaryContainer = document.getElementById('day-summary-container');
             const bottomSection = document.getElementById('bottom-summary-section');
-            
+            if(!list) return;
+
             list.innerHTML = '';
             summaryContainer.innerHTML = '';
             bottomSection.classList.add('hidden'); 
 
-            const filteredItems = appData.itinerary.filter(item => (item.day || "Day 1") === currentDayFilter);
-            const seenAITips = new Set();
+            updateWeatherWidget(currentDayFilter);
+
+            const filteredItems = (appData.itinerary || []).filter(item => (item.day || "Day 1") === currentDayFilter);
 
             if (filteredItems.length === 0) {
                 list.innerHTML = `<div class="text-center py-10 text-gray-400"><p>本日尚無行程</p></div>`;
@@ -524,11 +642,8 @@
                 filteredItems.forEach((item) => {
                     const li = document.createElement('li');
                     li.setAttribute('data-id', item.id);
-                    
                     const hlName = highlightContent(item.name);
                     const hlNote = highlightContent(item.note);
-                    const aiTip = getUniqueAITip(item.name, item.location, seenAITips); 
-
                     const deleteBtn = `<button onclick="deleteItem(${item.id})" class="ml-2 text-red-300 hover:text-red-500 transition px-2"><i class="fa-solid fa-trash-can"></i></button>`;
 
                     if (item.isDetail) {
@@ -537,33 +652,27 @@
                             <div class="flex-1 cursor-pointer" onclick="openEditModal(${item.id})">
                                 <div class="text-sm text-gray-600 font-medium">${hlName}</div>
                                 ${item.note ? `<div class="text-xs text-gray-500 mt-1">${hlNote}</div>` : ''}
-                                ${aiTip}
                                 ${item.img ? `<img src="${item.img}" class="mt-2 h-20 rounded-lg object-cover border">` : ''}
                             </div>
                             <div class="flex items-center">
                                 <button onclick="triggerPhotoUpload(${item.id})" class="text-gray-300 hover:text-blue-500 photo-btn p-2"><i class="fa-solid fa-camera"></i></button>
                                 ${deleteBtn}
                                 <div class="drag-handle text-gray-300 cursor-grab p-2"><i class="fa-solid fa-bars"></i></div>
-                            </div>
-                        `;
+                            </div>`;
                     } else {
                         li.className = "relative bg-white p-4 rounded-xl shadow-sm border border-gray-100 group mb-4 transition-all hover:shadow-md";
                         li.innerHTML = `
                             <div class="absolute -left-[24px] top-6 w-3 h-3 rounded-full bg-primary border-2 border-white shadow-sm z-10"></div>
                             <div class="absolute left-[-19px] top-9 bottom-[-30px] w-0.5 bg-gray-200 -z-10"></div>
-                            
                             <div class="flex justify-between items-start">
                                 <div class="drag-handle text-gray-300 hover:text-gray-500 cursor-grab pt-1 pr-3"><i class="fa-solid fa-grip-vertical"></i></div>
                                 <div class="flex-1 cursor-pointer" onclick="openEditModal(${item.id})">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-mono text-xl font-bold text-gray-800">${item.time}</span>
-                                    </div>
+                                    <div class="flex items-center gap-2 mb-1"><span class="font-mono text-xl font-bold text-gray-800">${item.time}</span></div>
                                     <h4 class="font-bold text-gray-800 text-lg leading-snug">${hlName}</h4>
                                     <div class="flex flex-wrap gap-2 mt-2">
                                         ${item.location ? `<span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded"><i class="fa-solid fa-location-dot mr-1"></i>${item.location}</span>` : ''}
                                         ${item.note ? `<span class="text-xs text-gray-600">${hlNote}</span>` : ''}
                                     </div>
-                                    ${aiTip}
                                     ${item.img ? `<div class="mt-3 relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden"><img src="${item.img}" class="w-full h-full object-cover"></div>` : ''}
                                 </div>
                                 <div class="flex flex-col gap-2 ml-3 pt-1 items-center">
@@ -571,97 +680,48 @@
                                     <button onclick="triggerPhotoUpload(${item.id})" class="text-gray-300 hover:text-blue-500 photo-btn p-1"><i class="fa-solid fa-camera text-lg"></i></button>
                                     ${deleteBtn}
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     }
                     list.appendChild(li);
                 });
             }
 
-            // Render Bottom Summary
-            const meta = appData.dayMeta[currentDayFilter];
+            const meta = (appData.dayMeta || {})[currentDayFilter];
             let hasSummary = false;
             
             if (meta) {
-                // 自費
+                const addBlock = (bg, border, title, icon, txt) => {
+                     summaryContainer.innerHTML += `<div class="${bg} p-4 rounded-xl border ${border} info-block"><h4 class="font-bold ${border.replace('border','text').replace('200','800')} text-sm mb-2 flex items-center"><i class="${icon} mr-2"></i>${title}</h4><div class="text-sm text-gray-700 overflow-x-auto">${safeMarked(txt)}</div></div>`;
+                     hasSummary = true;
+                };
                 if (meta.cost && meta.cost.trim()) {
-                    summaryContainer.innerHTML += `
-                        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 flex items-start gap-3">
-                            <i class="fa-solid fa-wallet text-yellow-600 mt-1"></i>
-                            <div>
-                                <h4 class="font-bold text-yellow-800 text-sm mb-1">總自費預估</h4>
-                                <p class="text-sm text-yellow-900">${meta.cost}</p>
-                            </div>
-                        </div>`;
-                    hasSummary = true;
+                     summaryContainer.innerHTML += `<div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 flex items-start gap-3"><i class="fa-solid fa-wallet text-yellow-600 mt-1"></i><div><h4 class="font-bold text-yellow-800 text-sm mb-1">總自費預估</h4><p class="text-sm text-yellow-900">${meta.cost}</p></div></div>`;
+                     hasSummary = true;
                 }
-                
-                // 提示 (Tips) - New
-                if (meta.tips && meta.tips.trim()) {
-                    summaryContainer.innerHTML += `
-                        <div class="bg-green-50 p-4 rounded-xl border border-green-200 info-block">
-                            <h4 class="font-bold text-green-800 text-sm mb-2 flex items-center"><i class="fa-solid fa-lightbulb mr-2"></i>購物/優惠提示</h4>
-                            <div class="text-sm text-gray-700 overflow-x-auto">${marked.parse(meta.tips)}</div>
-                        </div>`;
-                    hasSummary = true;
-                }
-
-                // 備案 (Backup) - New
-                if (meta.backup && meta.backup.trim()) {
-                    summaryContainer.innerHTML += `
-                        <div class="bg-gray-100 p-4 rounded-xl border border-gray-300 info-block">
-                            <h4 class="font-bold text-gray-800 text-sm mb-2 flex items-center"><i class="fa-solid fa-umbrella mr-2"></i>備案行程</h4>
-                            <div class="text-sm text-gray-700 overflow-x-auto">${marked.parse(meta.backup)}</div>
-                        </div>`;
-                    hasSummary = true;
-                }
-
-                // 餐飲
-                if (meta.food && meta.food.trim()) {
-                    summaryContainer.innerHTML += `
-                        <div class="bg-rose-50 p-4 rounded-xl border border-rose-200 info-block">
-                            <h4 class="font-bold text-rose-800 text-sm mb-2 flex items-center"><i class="fa-solid fa-utensils mr-2"></i>餐飲推薦</h4>
-                            <div class="text-sm text-gray-700 overflow-x-auto">${marked.parse(meta.food)}</div>
-                        </div>`;
-                    hasSummary = true;
-                }
-
-                // 轉乘
-                if (meta.transfer && meta.transfer.trim()) {
-                    summaryContainer.innerHTML += `
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 info-block">
-                            <h4 class="font-bold text-blue-800 text-sm mb-2 flex items-center"><i class="fa-solid fa-train-subway mr-2"></i>轉乘/步行建議</h4>
-                            <div class="text-sm text-gray-700 overflow-x-auto">${marked.parse(meta.transfer)}</div>
-                        </div>`;
-                    hasSummary = true;
-                }
+                if (meta.tips && meta.tips.trim()) addBlock('bg-green-50','border-green-200','購物/優惠提示','fa-solid fa-lightbulb', meta.tips);
+                if (meta.backup && meta.backup.trim()) addBlock('bg-gray-100','border-gray-300','備案行程','fa-solid fa-umbrella', meta.backup);
+                if (meta.food && meta.food.trim()) addBlock('bg-rose-50','border-rose-200','餐飲推薦','fa-solid fa-utensils', meta.food);
+                if (meta.transfer && meta.transfer.trim()) addBlock('bg-blue-50','border-blue-200','轉乘/步行建議','fa-solid fa-train-subway', meta.transfer);
             }
-            
-            if (hasSummary) {
-                bottomSection.classList.remove('hidden');
-            }
+            if (hasSummary) bottomSection.classList.remove('hidden');
         }
 
-        // --- 6. Helper Functions ---
+        // 4. Interaction Functions
         function initNotepad() {
             const area = document.getElementById('notepad-area');
-            if (appData.notepadContent) {
-                area.value = appData.notepadContent;
-            }
+            if(!area) return;
+            if (appData.notepadContent) area.value = appData.notepadContent;
             area.addEventListener('input', (e) => {
                 appData.notepadContent = e.target.value;
                 saveData();
             });
         }
-
         function deleteItem(id) {
             if(confirm("確定要刪除這個行程項目嗎？")) {
                 appData.itinerary = appData.itinerary.filter(item => item.id !== id);
-                saveData();
-                renderItinerary();
+                saveData(); renderItinerary();
             }
         }
-
         function handleMDImport(input) {
             const file = input.files[0];
             if (!file) return;
@@ -670,29 +730,31 @@
             reader.readAsText(file);
             input.value = '';
         }
-
         function switchDayFilter(day) {
             currentDayFilter = day;
-            renderTabs();
-            renderItinerary();
+            renderTabs(); renderItinerary();
         }
-
         function switchTab(tabId) {
-            ['home', 'itinerary', 'notepad', 'tools'].forEach(id => document.getElementById(`view-${id}`).classList.add('hidden'));
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            ['home', 'itinerary', 'notepad', 'tools'].forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if(el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(`view-${tabId}`);
+            if(target) target.classList.remove('hidden');
+            
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('text-primary');
                 if(btn.dataset.target === tabId) btn.classList.add('text-primary');
             });
+            
             const titles = { home: "我的旅程", itinerary: "行程規劃", notepad: "隨手筆記", tools: "旅行工具" };
-            document.getElementById('header-title').innerText = titles[tabId];
+            const titleEl = document.getElementById('header-title');
+            if(titleEl) titleEl.innerText = titles[tabId] || "我的旅程";
         }
-
         function triggerPhotoUpload(id) {
             activePhotoId = id;
             document.getElementById('photo-input').click();
         }
-
         function handlePhotoProcess(e) {
             const file = e.target.files[0];
             if(!file) return;
@@ -703,13 +765,11 @@
                     const canvas = document.getElementById('compress-canvas');
                     const ctx = canvas.getContext('2d');
                     const maxWidth = 800;
-                    let w = img.width;
-                    let h = img.height;
+                    let w = img.width; let h = img.height;
                     if (w > maxWidth) { h *= maxWidth/w; w = maxWidth; }
                     canvas.width = w; canvas.height = h;
                     ctx.drawImage(img, 0, 0, w, h);
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                    
                     const item = appData.itinerary.find(i => i.id === activePhotoId);
                     if(item) { item.img = dataUrl; saveData(); renderItinerary(); }
                 };
@@ -718,32 +778,23 @@
             reader.readAsDataURL(file);
             e.target.value = '';
         }
-
         function initSortable() {
             const el = document.getElementById('itinerary-list');
+            if(!el) return;
             new Sortable(el, {
-                handle: '.drag-handle',
-                animation: 150,
-                delay: 150,
-                delayOnTouchOnly: true,
+                handle: '.drag-handle', animation: 150, delay: 150, delayOnTouchOnly: true,
                 onEnd: function (evt) {
                     const newIds = Array.from(el.children).map(li => parseFloat(li.getAttribute('data-id')));
                     const currentItems = appData.itinerary.filter(item => (item.day || "Day 1") === currentDayFilter);
                     const otherItems = appData.itinerary.filter(item => (item.day || "Day 1") !== currentDayFilter);
-                    
                     const sortedCurrent = [];
-                    newIds.forEach(id => {
-                        const item = currentItems.find(i => i.id === id);
-                        if(item) sortedCurrent.push(item);
-                    });
-                    
+                    newIds.forEach(id => { const item = currentItems.find(i => i.id === id); if(item) sortedCurrent.push(item); });
                     appData.itinerary = [...otherItems, ...sortedCurrent];
                     appData.itinerary.sort((a,b) => (a.day||"").localeCompare(b.day||""));
                     saveData();
                 }
             });
         }
-
         function openEditModal(id) {
             const item = appData.itinerary.find(i => i.id === id);
             if(!item) return;
@@ -771,55 +822,56 @@
             appData.itinerary.push({id: Date.now(), day: currentDayFilter, time: "10:00", name: "新行程", location: "", note: "", isDetail: false, img: null});
             saveData(); renderItinerary();
         }
-
         function fetchExchangeRate() {
             fetch('https://api.exchangerate-api.com/v4/latest/JPY')
             .then(r=>r.json()).then(d=>{
                 appData.rate = d.rates.TWD;
-                document.getElementById('home-rate').innerText = (100 * appData.rate).toFixed(2);
-                document.getElementById('rate-display').innerText = `1 JPY ≈ ${appData.rate} TWD`;
+                const r = document.getElementById('home-rate');
+                const rd = document.getElementById('rate-display');
+                if(r) r.innerText = (100 * appData.rate).toFixed(2);
+                if(rd) rd.innerText = `1 JPY ≈ ${appData.rate} TWD`;
                 saveData();
             }).catch(e=>console.log(e));
         }
         function calcCurrency(src) {
             const t = document.getElementById('curr-twd'), j = document.getElementById('curr-jpy');
+            if(!t || !j) return;
             if(src==='twd') j.value = (t.value/appData.rate).toFixed(0);
             else t.value = (j.value*appData.rate).toFixed(0);
         }
         function openMap(q) { window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`; }
-        function saveData() { localStorage.setItem('travelApp_v8', JSON.stringify(appData)); }
-        function resetData() { if(confirm("確定清空？")) { localStorage.removeItem('travelApp_v8'); location.reload(); } }
+        function saveData() { localStorage.setItem('travelApp_v9', JSON.stringify(appData)); }
+        
+        function resetData() { 
+            if(confirm("這將會清除所有行程並重置 App，確定嗎？")) { 
+                localStorage.removeItem('travelApp_v9'); 
+                location.reload(); 
+            } 
+        }
         
         function exportToPDF() {
             if(appData.itinerary.length === 0) { alert("無資料"); return; }
             const printArea = document.getElementById('print-area');
             const days = [...new Set(appData.itinerary.map(i => i.day))].sort();
             let html = `<h1 style="text-align:center; font-size:24px; margin-bottom:20px;">${appData.tripName}</h1>`;
-            
-            // 加入總覽表格
             if (appData.overviewMarkdown) {
-                html += `<h3>行程總覽</h3><div>${marked.parse(appData.overviewMarkdown)}</div><hr>`;
+                html += `<h3>行程總覽</h3><div>${safeMarked(appData.overviewMarkdown)}</div><hr>`;
             }
-
             days.forEach(day => {
                 const items = appData.itinerary.filter(i => i.day === day);
                 const meta = appData.dayMeta[day];
-                
                 const rows = items.map(i => `
                     <tr><td style="width:15%;border-bottom:1px solid #ddd;padding:5px;">${i.time}</td>
                     <td style="width:40%;border-bottom:1px solid #ddd;padding:5px;"><b>${i.name}</b><br><small>${i.location}</small></td>
                     <td style="border-bottom:1px solid #ddd;padding:5px;">${i.note}</td></tr>
                 `).join('');
-                
-                html += `<h3 style="background:#eee;padding:5px;margin-top:20px;">${day}</h3>
-                <table style="width:100%;border-collapse:collapse;font-size:12px;">${rows}</table>`;
-                
+                html += `<h3 style="background:#eee;padding:5px;margin-top:20px;">${day}</h3><table style="width:100%;border-collapse:collapse;font-size:12px;">${rows}</table>`;
                 if(meta) {
                     if(meta.cost) html += `<div style="margin-top:5px;font-size:12px;"><b>自費:</b> ${meta.cost}</div>`;
-                    if(meta.tips) html += `<div style="margin-top:5px;font-size:12px;"><b>提示:</b><br>${marked.parse(meta.tips)}</div>`;
-                    if(meta.backup) html += `<div style="margin-top:5px;font-size:12px;"><b>備案:</b><br>${marked.parse(meta.backup)}</div>`;
-                    if(meta.food) html += `<div style="margin-top:5px;font-size:12px;"><b>餐飲:</b><br>${marked.parse(meta.food)}</div>`;
-                    if(meta.transfer) html += `<div style="margin-top:5px;font-size:12px;"><b>轉乘:</b><br>${marked.parse(meta.transfer)}</div>`;
+                    if(meta.tips) html += `<div style="margin-top:5px;font-size:12px;"><b>提示:</b><br>${safeMarked(meta.tips)}</div>`;
+                    if(meta.backup) html += `<div style="margin-top:5px;font-size:12px;"><b>備案:</b><br>${safeMarked(meta.backup)}</div>`;
+                    if(meta.food) html += `<div style="margin-top:5px;font-size:12px;"><b>餐飲:</b><br>${safeMarked(meta.food)}</div>`;
+                    if(meta.transfer) html += `<div style="margin-top:5px;font-size:12px;"><b>轉乘:</b><br>${safeMarked(meta.transfer)}</div>`;
                 }
             });
             printArea.innerHTML = html;
