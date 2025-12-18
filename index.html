@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>日本規劃 </title>
+    <title>日本規劃 V14 </title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,29 +12,30 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
-        // 全局錯誤攔截
+        // 1. 全局錯誤攔截
         window.onerror = function(msg, url, line, col, error) {
-            console.error("Error:", msg);
+            console.error("Error:", msg, error);
             return false;
         };
+
+        // 2. 強制重置功能
+        function forceResetApp() {
+            if(confirm('【警告】這將會強制清除所有行程資料並重整頁面，確定嗎？')) {
+                try {
+                    localStorage.removeItem('travelApp_v14'); // 更新為 v14
+                    localStorage.removeItem('travelApp_v11');
+                    localStorage.removeItem('travelApp_v9'); 
+                } catch(e) { console.error(e); }
+                window.location.reload();
+            }
+        }
 
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        primary: '#0EA5E9', 
-                        secondary: '#64748B',
-                        accent: '#F59E0B',
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
+                    colors: { primary: '#0EA5E9', secondary: '#64748B', accent: '#F59E0B' },
+                    animation: { 'fade-in': 'fadeIn 0.3s ease-out' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
                 }
             }
         }
@@ -53,20 +54,20 @@
         .tag-res { color: #ffffff; background-color: #7c3aed; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; box-shadow: 2px 2px 0px #5b21b6; }
         .tag-imp { color: #1e40af; background-color: #dbeafe; font-weight: 800; padding: 0 4px; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #3b82f6; }
 
+        .info-block { @apply shadow-sm transition-all hover:shadow-md; }
         .info-block table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; background: rgba(255,255,255,0.5); }
         .info-block th { background: rgba(0,0,0,0.05); padding: 8px; text-align: left; border: 1px solid rgba(0,0,0,0.1); font-weight: bold; color: #374151; }
         .info-block td { padding: 8px; border: 1px solid rgba(0,0,0,0.1); vertical-align: top; }
         .info-block ul { list-style-type: disc; padding-left: 20px; margin: 5px 0; }
+        .info-block ol { list-style-type: decimal; padding-left: 20px; margin: 5px 0; }
         .info-block a { color: #0EA5E9; text-decoration: underline; }
+        .info-block p { margin-bottom: 0.5rem; }
 
         .overview-table-container table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8rem; }
         .overview-table-container th { background-color: #f1f5f9; color: #334155; font-weight: bold; padding: 10px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
         .overview-table-container td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #475569; }
         .overview-table-container tr:last-child td { border-bottom: none; }
 
-        .ai-box { background: linear-gradient(to right, #eff6ff, #ffffff); border-left: 4px solid #3b82f6; padding: 8px 12px; margin-top: 10px; border-radius: 0 8px 8px 0; font-size: 0.8rem; color: #1e3a8a; display: flex; align-items: start; gap: 8px; }
-
-        /* Weather Widget */
         .weather-card {
             background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
             border-bottom: 1px solid #bae6fd;
@@ -78,7 +79,6 @@
             color: #0c4a6e;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .weather-icon { font-size: 1.5rem; margin-right: 8px; }
         .weather-btn {
             background-color: #fff;
             border: 1px solid #bae6fd;
@@ -115,7 +115,7 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg leading-tight" id="header-title">我的旅程</h1>
-                <p class="text-[10px] text-gray-400">v9.2 天氣修正版</p>
+                <p class="text-[10px] text-gray-400">V14 自費修復版</p>
             </div>
         </div>
         <div class="flex gap-3">
@@ -254,7 +254,12 @@
                 </div>
                 <i class="fa-solid fa-chevron-right text-gray-500"></i>
             </button>
-             <button onclick="resetData()" class="w-full py-3 text-red-400 text-sm border border-red-100 rounded-lg hover:bg-red-50 cursor-pointer">⚠️ 程式異常？點此清空所有資料</button>
+             
+             <div class="pt-4 border-t border-gray-200 mt-4">
+                 <button onclick="forceResetApp()" class="w-full py-3 text-red-500 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 font-bold active:scale-95 transition cursor-pointer">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i>強制清除所有資料 & 重置
+                 </button>
+             </div>
         </div>
     </main>
 
@@ -317,7 +322,7 @@
             tripName: "我的旅程",
             rate: 0.22,
             itinerary: [],
-            dayMeta: {},
+            dayMeta: {}, // V14 format: { "Day 1": [ {title: "Title", content: "...", type: "cost"|"normal"} ] }
             overviewMarkdown: "",
             notepadContent: ""
         };
@@ -338,12 +343,28 @@
         // --- 2. Robust Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
             try {
-                const stored = localStorage.getItem('travelApp_v9');
+                const stored = localStorage.getItem('travelApp_v14'); // V14 key
+                
                 if (stored) {
                     appData = JSON.parse(stored);
-                    if(!appData.itinerary) appData.itinerary = [];
-                    if(!appData.dayMeta) appData.dayMeta = {};
+                } else {
+                     // Try to migrate old V11 data
+                     const oldStored = localStorage.getItem('travelApp_v11');
+                     if(oldStored) {
+                         try {
+                            const oldData = JSON.parse(oldStored);
+                            appData = { ...defaultData, ...oldData };
+                            saveData(); 
+                         } catch(e) {
+                             console.error("Migration failed", e);
+                             appData = defaultData;
+                         }
+                     }
                 }
+
+                if(!appData.itinerary) appData.itinerary = [];
+                if(!appData.dayMeta) appData.dayMeta = {};
+
             } catch (e) {
                 console.error("Data corrupted, resetting to default", e);
                 appData = defaultData;
@@ -362,48 +383,24 @@
                 }
             } catch (e) { console.warn("Sortable init failed", e); }
 
-            document.getElementById('photo-input').addEventListener('change', handlePhotoProcess);
+            const photoInput = document.getElementById('photo-input');
+            if(photoInput) photoInput.addEventListener('change', handlePhotoProcess);
+            
             switchTab('home');
         });
 
-        // --- Core Functions (Global Scope) ---
+        // --- Core Functions ---
         
-        // 1. Weather Logic (Fix applied here)
         function getCityForDay(day) {
-            // 抓取當天的所有行程文字 (只取名稱 item.name)，增強判斷
             const items = appData.itinerary.filter(i => i.day === day);
             const dayTitle = day || "";
-            // ***只使用 item.name 進行城市判斷***
             const combinedText = (dayTitle + " " + items.map(i => i.name||"").join(" ")).toLowerCase(); 
 
-            // 定義搜索優先級：遠程城市 > 日歸城市 > 基地城市
-
-            // 1. 判斷鳥取 (Day 3) - 關鍵字：鳥取、倉吉、柯南、由良
-            if(combinedText.includes("鳥取") || combinedText.includes("倉吉") || combinedText.includes("柯南") || combinedText.includes("由良")) {
-                return "鳥取";
-            }
-
-            // 2. 判斷岡山 (Day 6) - 關鍵字：岡山、倉敷
-            if(combinedText.includes("岡山") || combinedText.includes("倉敷")) {
-                return "岡山";
-            }
-
-            // 3. 判斷奈良 - 關鍵字：奈良
-            if(combinedText.includes("奈良")) {
-                return "奈良";
-            }
-            
-            // 4. 判斷京都 (Day 2 & 5) - 關鍵字：京都、下鴨、清水寺、嵐山
-            if(combinedText.includes("京都") || combinedText.includes("下鴨") || combinedText.includes("清水寺") || combinedText.includes("嵐山")) {
-                return "京都";
-            }
-
-            // 5. 判斷大阪 (Day 1, 4, 7 & 預設) - 關鍵字：臨空城、關西機場、難波、天王寺、梅田、心齋橋、淀屋橋、大阪
-            if(combinedText.includes("臨空城") || combinedText.includes("關西機場") || combinedText.includes("難波") || combinedText.includes("天王寺") || combinedText.includes("梅田") || combinedText.includes("心齋橋") || combinedText.includes("淀屋橋") || combinedText.includes("大阪")) {
-                return "大阪";
-            }
-            
-            // 6. 最終預設值 (行程基地)
+            if(combinedText.includes("鳥取") || combinedText.includes("倉吉") || combinedText.includes("柯南") || combinedText.includes("由良")) return "鳥取";
+            if(combinedText.includes("岡山") || combinedText.includes("倉敷")) return "岡山";
+            if(combinedText.includes("奈良")) return "奈良";
+            if(combinedText.includes("京都") || combinedText.includes("下鴨") || combinedText.includes("清水寺") || combinedText.includes("嵐山")) return "京都";
+            if(combinedText.includes("東京") || combinedText.includes("澀谷") || combinedText.includes("新宿")) return "東京";
             return "大阪"; 
         }
 
@@ -418,47 +415,48 @@
         }
 
         function updateWeatherWidget(dayStr) {
-            const cityName = getCityForDay(dayStr);
-            const dateStr = parseDateFromDay(dayStr);
-            const city = cityData[cityName] || cityData["大阪"];
-            
-            const cityEl = document.getElementById('ww-city');
-            const dateEl = document.getElementById('ww-date');
-            const linkEl = document.getElementById('ww-link');
-            const tempEl = document.getElementById('ww-temp');
-            const rainEl = document.getElementById('ww-rain');
-            const iconEl = document.getElementById('ww-icon');
+            try {
+                const cityName = getCityForDay(dayStr);
+                const dateStr = parseDateFromDay(dayStr);
+                const city = cityData[cityName] || cityData["大阪"];
+                
+                const cityEl = document.getElementById('ww-city');
+                const dateEl = document.getElementById('ww-date');
+                const linkEl = document.getElementById('ww-link');
+                const tempEl = document.getElementById('ww-temp');
+                const rainEl = document.getElementById('ww-rain');
+                const iconEl = document.getElementById('ww-icon');
 
-            if(cityEl) cityEl.innerText = cityName;
-            if(dateEl) dateEl.innerText = dateStr.slice(5).replace('-', '/');
-            if(linkEl) {
-                linkEl.onclick = function() { window.open(city.url, '_blank'); };
-            }
-            if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            if(tempEl) tempEl.innerText = '--°C';
-
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&start_date=${dateStr}&end_date=${dateStr}`;
-
-            fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                if(data.daily && data.daily.time.length > 0) {
-                    const code = data.daily.weathercode[0];
-                    const maxT = data.daily.temperature_2m_max[0];
-                    const minT = data.daily.temperature_2m_min[0];
-                    const rain = data.daily.precipitation_probability_max[0];
-                    if(tempEl) tempEl.innerText = `${Math.round((maxT+minT)/2)}°C`;
-                    if(rainEl) rainEl.innerHTML = `<i class="fa-solid fa-umbrella mr-1"></i>${rain}%`;
-                    if(iconEl) iconEl.innerHTML = getWeatherIcon(code);
-                } else {
-                    if(tempEl) tempEl.innerText = '-';
-                    if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-calendar-xmark"></i>';
+                if(cityEl) cityEl.innerText = cityName;
+                if(dateEl) dateEl.innerText = dateStr.slice(5).replace('-', '/');
+                if(linkEl) {
+                    linkEl.onclick = function() { window.open(city.url, '_blank'); };
                 }
-            })
-            .catch(err => {
-                console.log("Weather Fetch Error", err);
-                if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
-            });
+                if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                if(tempEl) tempEl.innerText = '--°C';
+
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&start_date=${dateStr}&end_date=${dateStr}`;
+
+                fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.daily && data.daily.time.length > 0) {
+                        const code = data.daily.weathercode[0];
+                        const maxT = data.daily.temperature_2m_max[0];
+                        const minT = data.daily.temperature_2m_min[0];
+                        const rain = data.daily.precipitation_probability_max[0];
+                        if(tempEl) tempEl.innerText = `${Math.round((maxT+minT)/2)}°C`;
+                        if(rainEl) rainEl.innerHTML = `<i class="fa-solid fa-umbrella mr-1"></i>${rain}%`;
+                        if(iconEl) iconEl.innerHTML = getWeatherIcon(code);
+                    } else {
+                        if(tempEl) tempEl.innerText = '-';
+                        if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-calendar-xmark"></i>';
+                    }
+                })
+                .catch(err => {
+                    if(iconEl) iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                });
+            } catch(e) { console.error("Update Widget Error", e); }
         }
 
         function fetchHomeWeather() {
@@ -490,7 +488,7 @@
             return "陰天";
         }
 
-        // 2. MD Parser
+        // 2. MD Parser (V14 Enhanced)
         function parseMD(text) {
             if (typeof marked === 'undefined') { alert("Markdown 解析庫載入失敗，請檢查網路。"); return; }
             
@@ -503,53 +501,64 @@
             
             lines.forEach(line => {
                 let trimmed = line.trim();
+
                 if ((trimmed.startsWith('#') || trimmed.startsWith('##')) && trimmed.match(/Day/i)) {
                     if (!trimmed.includes('晚餐') && !trimmed.includes('推薦')) {
                         parsingDay = trimmed.replace(/#+\s*/, '').trim(); 
                         parseMode = "SCHEDULE";
-                        if (!newDayMeta[parsingDay]) newDayMeta[parsingDay] = { cost: "", transfer: "", food: "", tips: "", backup: "" };
+                        if (!newDayMeta[parsingDay]) newDayMeta[parsingDay] = [];
                         return;
                     }
                 }
+
                 if (!parsingDay) { newOverviewMD += line + "\n"; return; }
                 
-                if (!newDayMeta[parsingDay]) newDayMeta[parsingDay] = { cost: "", transfer: "", food: "", tips: "", backup: "" };
+                if (!newDayMeta[parsingDay]) newDayMeta[parsingDay] = [];
 
-                if (trimmed.startsWith('###') || (trimmed.startsWith('**') && trimmed.includes('備案'))) {
-                    const lower = trimmed.toLowerCase();
-                    if (lower.includes('轉乘') || lower.includes('步行') || lower.includes('交通')) parseMode = "TRANSFER";
-                    else if (lower.includes('餐') || lower.includes('食') || lower.includes('晚餐')) parseMode = "FOOD";
-                    else if (lower.includes('自費')) parseMode = "COST";
-                    else if (lower.includes('提示') || lower.includes('購物')) parseMode = "TIPS"; 
-                    else if (lower.includes('備案')) parseMode = "BACKUP"; 
-                    else parseMode = "OTHER";
-                    return; 
-                }
-
+                // --- V14: Specific check for Cost line (Legacy support) ---
                 if (trimmed.includes('💡') && trimmed.includes('自費')) {
-                     newDayMeta[parsingDay].cost = trimmed.replace(/\*\*/g, '');
-                     return;
+                    newDayMeta[parsingDay].push({ title: "總自費預估", content: trimmed.replace(/\*\*/g, ''), type: 'cost' });
+                    return;
+                }
+                // ---------------------------------------------------------
+
+                if (trimmed.startsWith('###')) {
+                    const title = trimmed.replace(/^###\s*/, '').trim();
+                    newDayMeta[parsingDay].push({ title: title, content: "", type: 'normal' });
+                    parseMode = "DYNAMIC_SECTION";
+                    return;
                 }
 
                 if (parseMode === "SCHEDULE") {
                     if (trimmed.startsWith('|') && !trimmed.includes('---')) {
                         const cols = trimmed.split('|').map(c => c.replace(/\*\*/g, '').replace(/\[(.*?)\]\(.*?\)/g, '$1').trim());
-                        if (cols.length < 3) return;
-                        let time = cols[1]; 
-                        let name = cols[2]; 
-                        let location = cols[3] || ""; 
-                        let note = cols[4] || ""; 
-                        if (time.includes('時間') || name.includes('行程內容')) return;
-                        const isDetail = (!time || time.trim() === "");
-                        if (isDetail && cols[3] && cols[3] !== "-") note = (cols[3] + " " + note).trim();
-                        if (name && name !== "-") {
-                            newItems.push({ id: Date.now() + Math.random(), day: parsingDay, time: isDetail ? "" : time, name: name, location: location, note: note, isDetail: isDetail, img: null });
+                        if (cols.length >= 3) {
+                            let time = cols[1]; 
+                            let name = cols[2]; 
+                            let location = cols[3] || ""; 
+                            let note = cols[4] || ""; 
+                            
+                            if (time.includes('時間') || name.includes('行程內容')) return;
+                            
+                            const isDetail = (!time || time.trim() === "");
+                            if (isDetail && cols[3] && cols[3] !== "-") note = (cols[3] + " " + note).trim();
+                            
+                            if (name && name !== "-") {
+                                newItems.push({ id: Date.now() + Math.random(), day: parsingDay, time: isDetail ? "" : time, name: name, location: location, note: note, isDetail: isDetail, img: null });
+                            }
                         }
+                    } else if (trimmed !== "" && !trimmed.startsWith('|')) {
+                         if (newDayMeta[parsingDay].length > 0) {
+                             const lastIdx = newDayMeta[parsingDay].length - 1;
+                             newDayMeta[parsingDay][lastIdx].content += line + "\n";
+                         }
                     }
-                } else if (parseMode === "TRANSFER" && trimmed) newDayMeta[parsingDay].transfer += line + "\n";
-                else if (parseMode === "FOOD" && trimmed) newDayMeta[parsingDay].food += line + "\n";
-                else if (parseMode === "TIPS" && trimmed) newDayMeta[parsingDay].tips += line + "\n";
-                else if (parseMode === "BACKUP" && trimmed) newDayMeta[parsingDay].backup += line + "\n";
+                } else if (parseMode === "DYNAMIC_SECTION") {
+                    if (newDayMeta[parsingDay].length > 0) {
+                        const lastIdx = newDayMeta[parsingDay].length - 1;
+                        newDayMeta[parsingDay][lastIdx].content += line + "\n";
+                    }
+                }
             });
 
             if (newItems.length > 0) {
@@ -686,23 +695,38 @@
                 });
             }
 
-            const meta = (appData.dayMeta || {})[currentDayFilter];
+            const metaList = appData.dayMeta[currentDayFilter];
             let hasSummary = false;
-            
-            if (meta) {
-                const addBlock = (bg, border, title, icon, txt) => {
-                     summaryContainer.innerHTML += `<div class="${bg} p-4 rounded-xl border ${border} info-block"><h4 class="font-bold ${border.replace('border','text').replace('200','800')} text-sm mb-2 flex items-center"><i class="${icon} mr-2"></i>${title}</h4><div class="text-sm text-gray-700 overflow-x-auto">${safeMarked(txt)}</div></div>`;
-                     hasSummary = true;
-                };
-                if (meta.cost && meta.cost.trim()) {
-                     summaryContainer.innerHTML += `<div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 flex items-start gap-3"><i class="fa-solid fa-wallet text-yellow-600 mt-1"></i><div><h4 class="font-bold text-yellow-800 text-sm mb-1">總自費預估</h4><p class="text-sm text-yellow-900">${meta.cost}</p></div></div>`;
-                     hasSummary = true;
-                }
-                if (meta.tips && meta.tips.trim()) addBlock('bg-green-50','border-green-200','購物/優惠提示','fa-solid fa-lightbulb', meta.tips);
-                if (meta.backup && meta.backup.trim()) addBlock('bg-gray-100','border-gray-300','備案行程','fa-solid fa-umbrella', meta.backup);
-                if (meta.food && meta.food.trim()) addBlock('bg-rose-50','border-rose-200','餐飲推薦','fa-solid fa-utensils', meta.food);
-                if (meta.transfer && meta.transfer.trim()) addBlock('bg-blue-50','border-blue-200','轉乘/步行建議','fa-solid fa-train-subway', meta.transfer);
+
+            if (metaList && Array.isArray(metaList)) {
+                metaList.forEach(section => {
+                    if ((section.content && section.content.trim()) || section.title === "總自費預估") {
+                        // V14: Special rendering for Cost card
+                        if (section.type === 'cost') {
+                             summaryContainer.innerHTML += `
+                             <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 info-block flex items-start gap-3">
+                                <i class="fa-solid fa-coins text-yellow-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-bold text-yellow-800 text-sm mb-1">${section.title}</h4>
+                                    <div class="text-sm text-yellow-900">${safeMarked(section.content)}</div>
+                                </div>
+                             </div>`;
+                        } else {
+                            summaryContainer.innerHTML += `
+                                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 info-block">
+                                    <h4 class="font-bold text-blue-800 text-sm mb-2 flex items-center">
+                                        <span class="mr-2 text-blue-400">#</span>${section.title}
+                                    </h4>
+                                    <div class="text-sm text-gray-700 overflow-x-auto leading-relaxed">
+                                        ${safeMarked(section.content)}
+                                    </div>
+                                </div>`;
+                        }
+                        hasSummary = true;
+                    }
+                });
             }
+            
             if (hasSummary) bottomSection.classList.remove('hidden');
         }
 
@@ -839,14 +863,11 @@
             if(src==='twd') j.value = (t.value/appData.rate).toFixed(0);
             else t.value = (j.value*appData.rate).toFixed(0);
         }
-        function openMap(q) { window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`; }
-        function saveData() { localStorage.setItem('travelApp_v9', JSON.stringify(appData)); }
-        
-        function resetData() { 
-            if(confirm("這將會清除所有行程並重置 App，確定嗎？")) { 
-                localStorage.removeItem('travelApp_v9'); 
-                location.reload(); 
-            } 
+        function openMap(q) { 
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank'); 
+        }
+        function saveData() { 
+            try { localStorage.setItem('travelApp_v14', JSON.stringify(appData)); } catch(e) { console.error("Save Error", e); }
         }
         
         function exportToPDF() {
@@ -859,19 +880,24 @@
             }
             days.forEach(day => {
                 const items = appData.itinerary.filter(i => i.day === day);
-                const meta = appData.dayMeta[day];
+                const metaList = appData.dayMeta[day]; 
+                
                 const rows = items.map(i => `
                     <tr><td style="width:15%;border-bottom:1px solid #ddd;padding:5px;">${i.time}</td>
                     <td style="width:40%;border-bottom:1px solid #ddd;padding:5px;"><b>${i.name}</b><br><small>${i.location}</small></td>
                     <td style="border-bottom:1px solid #ddd;padding:5px;">${i.note}</td></tr>
                 `).join('');
+                
                 html += `<h3 style="background:#eee;padding:5px;margin-top:20px;">${day}</h3><table style="width:100%;border-collapse:collapse;font-size:12px;">${rows}</table>`;
-                if(meta) {
-                    if(meta.cost) html += `<div style="margin-top:5px;font-size:12px;"><b>自費:</b> ${meta.cost}</div>`;
-                    if(meta.tips) html += `<div style="margin-top:5px;font-size:12px;"><b>提示:</b><br>${safeMarked(meta.tips)}</div>`;
-                    if(meta.backup) html += `<div style="margin-top:5px;font-size:12px;"><b>備案:</b><br>${safeMarked(meta.backup)}</div>`;
-                    if(meta.food) html += `<div style="margin-top:5px;font-size:12px;"><b>餐飲:</b><br>${safeMarked(meta.food)}</div>`;
-                    if(meta.transfer) html += `<div style="margin-top:5px;font-size:12px;"><b>轉乘:</b><br>${safeMarked(meta.transfer)}</div>`;
+                
+                if(metaList && Array.isArray(metaList)) {
+                    metaList.forEach(section => {
+                        html += `
+                        <div style="margin-top:10px; border-left:3px solid #0EA5E9; padding-left:10px;">
+                            <b style="color:#0284c7;"># ${section.title}</b>
+                            <div style="font-size:12px; margin-top:5px;">${safeMarked(section.content)}</div>
+                        </div>`;
+                    });
                 }
             });
             printArea.innerHTML = html;
