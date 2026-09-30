@@ -165,7 +165,7 @@
         </div>
 
         <div id="view-itinerary" class="hidden flex flex-col min-h-full animate-fade-in relative">
-            <div class="sticky top-0 z-20 bg-gray-50/95 backdrop-blur shadow-sm">
+            <div class="sticky top-0 z-40 bg-gray-50/95 backdrop-blur shadow-sm">
                 <div id="day-tabs" class="flex overflow-x-auto no-scrollbar gap-2 px-4 py-3 border-b border-gray-200">
                     </div>
                 <div id="weather-widget" class="weather-card">
@@ -321,7 +321,8 @@
             itinerary: [],
             dayMeta: {},
             overviewMarkdown: "",
-            notepadContent: ""
+            notepadContent: "",
+            tripYear: new Date().getFullYear()
         };
 
         const cityData = {
@@ -330,7 +331,9 @@
             "鳥取": { lat: 35.5011, lon: 134.2351, url: "https://tenki.jp/forecast/7/34/6910/31201/" },
             "岡山": { lat: 34.6555, lon: 133.9198, url: "https://tenki.jp/forecast/7/36/6610/33100/" },
             "奈良": { lat: 34.6851, lon: 135.8048, url: "https://tenki.jp/forecast/6/29/6410/29201/" },
-            "東京": { lat: 35.6895, lon: 139.6917, url: "https://tenki.jp/forecast/3/16/4410/13101/" }
+            "東京": { lat: 35.6895, lon: 139.6917, url: "https://tenki.jp/forecast/3/16/4410/13101/" },
+            "鎌倉": { lat: 35.3192, lon: 139.5467, url: "https://tenki.jp/forecast/3/17/4610/14204/" },
+            "成田": { lat: 35.7767, lon: 140.3183, url: "https://tenki.jp/forecast/3/15/4510/12211/" }
         };
 
         let appData = defaultData;
@@ -383,23 +386,28 @@
         // --- Core Functions ---
         
         function getCityForDay(day) {
-            const items = appData.itinerary.filter(i => i.day === day);
+            const items = (appData.itinerary || []).filter(i => i.day === day);
             const dayTitle = day || "";
-            const combinedText = (dayTitle + " " + items.map(i => i.name||"").join(" ")).toLowerCase(); 
+            const combinedText = (dayTitle + " " + items.map(i => `${i.name || ""} ${i.location || ""} ${i.note || ""}`).join(" ")).toLowerCase();
 
-            if(combinedText.includes("鳥取") || combinedText.includes("倉吉") || combinedText.includes("柯南") || combinedText.includes("由良")) return "鳥取";
-            if(combinedText.includes("岡山") || combinedText.includes("倉敷")) return "岡山";
-            if(combinedText.includes("奈良")) return "奈良";
-            if(combinedText.includes("京都") || combinedText.includes("下鴨") || combinedText.includes("清水寺") || combinedText.includes("嵐山")) return "京都";
-            if(combinedText.includes("東京") || combinedText.includes("澀谷") || combinedText.includes("新宿")) return "東京";
-            return "大阪"; 
+            // 依每日標題與行程的主要地區選擇天氣；東京市區各行政區統一使用東京預報。
+            // Day 1 雖含成田抵達，但當日主要行程在東京，因此先以標題判斷。
+            if (/東京|赤羽|巢鴨|新宿|秋葉原|池袋|椎名町|上野|御徒町|日本橋|丸之內|船堀|日暮里|東京都廳/i.test(dayTitle)) return "東京";
+            if (dayTitle.includes("鎌倉") || dayTitle.includes("江之島") || combinedText.includes("鎌倉") || combinedText.includes("江之島")) return "鎌倉";
+            if (dayTitle.includes("成田") || combinedText.includes("成田")) return "成田";
+            if (/東京|赤羽|巢鴨|新宿|秋葉原|池袋|椎名町|上野|御徒町|日本橋|丸之內|船堀|日暮里|外神田|東京都廳|sunshine|東京站/i.test(combinedText)) return "東京";
+            if (combinedText.includes("鳥取") || combinedText.includes("倉吉") || combinedText.includes("柯南") || combinedText.includes("由良")) return "鳥取";
+            if (combinedText.includes("岡山") || combinedText.includes("倉敷")) return "岡山";
+            if (combinedText.includes("奈良")) return "奈良";
+            if (combinedText.includes("京都") || combinedText.includes("下鴨") || combinedText.includes("清水寺") || combinedText.includes("嵐山")) return "京都";
+            return "東京";
         }
 
         function parseDateFromDay(dayStr) {
             if(!dayStr) return new Date().toISOString().split('T')[0];
             const match = dayStr.match(/(\d{1,2})\/(\d{1,2})/);
             if(match) {
-                const currentYear = new Date().getFullYear();
+                const currentYear = Number(appData.tripYear) || new Date().getFullYear();
                 return `${currentYear}-${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`;
             }
             return new Date().toISOString().split('T')[0];
@@ -512,7 +520,15 @@
                 if (trimmed.startsWith('###')) {
                     const title = trimmed.replace(/^###\s*/, '').trim();
                     newDayMeta[parsingDay].push({ title: title, content: "", type: 'normal' });
-                    parseMode = "DYNAMIC_SECTION";
+                    // 「建議時間表」後面的表格是行程；其他三級標題是摘要段落。
+                    parseMode = /時間表|行程表|行程安排/.test(title) ? "SCHEDULE" : "DYNAMIC_SECTION";
+                    return;
+                }
+
+                // 有些 Markdown（例如 Day 3）沒有「建議時間表」標題，
+                // 直接以「時間／行程」表頭開始；偵測後切回行程模式。
+                if (trimmed.startsWith('|') && /時間/.test(trimmed) && /(行程|安排|活動|內容)/.test(trimmed)) {
+                    parseMode = "SCHEDULE";
                     return;
                 }
 
@@ -585,6 +601,8 @@
                 if (confirm(`解析完成！找到 ${newItems.length} 個行程項目。是否匯入？`)) {
                     appData.itinerary = newItems;
                     appData.dayMeta = newDayMeta;
+                    const yearMatch = text.match(/(?:旅行日期|出發日期|旅遊日期)[^\d]*(20\d{2})/);
+                    appData.tripYear = yearMatch ? Number(yearMatch[1]) : (appData.tripYear || new Date().getFullYear());
                     appData.overviewMarkdown = newOverviewMD; 
                     const days = [...new Set(newItems.map(i => i.day))];
                     currentDayFilter = days[0] || "Day 1";
